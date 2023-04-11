@@ -5,6 +5,10 @@ use turbo_tasks_fs::FileSystemPathVc;
 use turbopack::ecmascript::EcmascriptModuleAssetVc;
 use turbopack_core::{
     chunk::{ChunkGroupVc, ChunkableAsset, ChunkableAssetVc},
+    compile_time_info::{
+        CompileTimeDefines, CompileTimeDefinesVc, CompileTimeInfo, CompileTimeInfoVc,
+    },
+    environment::{BrowserEnvironment, EnvironmentIntention, EnvironmentVc, ExecutionEnvironment},
     reference_type::{EntryReferenceSubType, ReferenceType},
     resolve::{origin::PlainResolveOriginVc, parse::RequestVc},
 };
@@ -16,11 +20,32 @@ use turbopack_node::execution_context::ExecutionContextVc;
 
 use crate::{
     next_client::context::{
-        get_client_asset_context, get_client_chunking_context, get_client_compile_time_info,
-        get_client_runtime_entries, ClientContextType,
+        get_client_asset_context, get_client_chunking_context, get_client_runtime_entries,
+        ClientContextType,
     },
     next_config::NextConfigVc,
 };
+
+#[turbo_tasks::function]
+pub fn get_client_compile_time_info(browserslist_query: &str) -> CompileTimeInfoVc {
+    CompileTimeInfo {
+        environment: EnvironmentVc::new(
+            Value::new(ExecutionEnvironment::Browser(
+                BrowserEnvironment {
+                    dom: true,
+                    web_worker: false,
+                    service_worker: false,
+                    browserslist_query: browserslist_query.to_owned(),
+                }
+                .into(),
+            )),
+            Value::new(EnvironmentIntention::Client),
+        ),
+        // defines: next_client_defines(),
+        defines: CompileTimeDefinesVc::empty(),
+    }
+    .cell()
+}
 
 #[turbo_tasks::function]
 pub async fn create_web_entry_source(
@@ -35,6 +60,7 @@ pub async fn create_web_entry_source(
 ) -> Result<ContentSourceVc> {
     let ty = Value::new(ClientContextType::Other);
     let compile_time_info = get_client_compile_time_info(browserslist_query);
+
     let context = get_client_asset_context(
         project_path,
         execution_context,
