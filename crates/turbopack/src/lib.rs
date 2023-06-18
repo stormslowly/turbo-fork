@@ -549,7 +549,9 @@ async fn warn_on_unsupported_modules(
         query: _,
     } = &*request.await?
     {
-        // Warn if the package is known not to be supported by Turbopack at the moment.
+        // println!("request module {} {:?} origin {:?}", module, path,
+        // origin_path.realpath().await?.path); Warn if the package is known not
+        // to be supported by Turbopack at the moment.
         if UNSUPPORTED_PACKAGES.contains(module) {
             UnsupportedModuleIssue {
                 context: origin_path,

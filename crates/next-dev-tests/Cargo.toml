@@ -6,8 +6,15 @@ license = "MPL-2.0"
 edition = "2021"
 autobenches = false
 
+
 # don't publish this crate
 publish = false
+
+[[bin]]
+name = "next-dev-test"
+path = "src/main.rs"
+bench = false
+
 
 [features]
 tokio_console = [
@@ -17,13 +24,11 @@ tokio_console = [
 ]
 
 [dependencies]
-console-subscriber = { workspace = true, optional = true }
-
-[dev-dependencies]
 anyhow = { workspace = true }
 chromiumoxide = { workspace = true, features = [
   "tokio-runtime",
 ], default-features = false }
+console-subscriber = { workspace = true, optional = true }
 futures = { workspace = true }
 httpmock = { workspace = true, features = ["standalone"] }
 lazy_static = { workspace = true }

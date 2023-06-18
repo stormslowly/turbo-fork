@@ -45,7 +45,7 @@ use turbopack_dev_server::{
     source::{
         combined::CombinedContentSourceVc, router::RouterContentSource,
         source_maps::SourceMapContentSourceVc, static_assets::StaticAssetsContentSourceVc,
-        ContentSourceVc,
+        ContentSource, ContentSourceVc, NoContentSource, NoContentSourceVc,
     },
     DevServer, DevServerBuilder,
 };
@@ -302,48 +302,48 @@ async fn source(
         &browserslist_query,
         next_config,
     );
-    let pages_structure = find_pages_structure(project_path, dev_server_root, next_config);
-    let page_source = create_page_source(
-        pages_structure,
-        project_path,
-        execution_context,
-        output_root.join("pages"),
-        dev_server_root,
-        env,
-        &browserslist_query,
-        next_config,
-        server_addr,
-    );
-    let app_structure = find_app_structure(project_path, dev_server_root, next_config);
-    let app_source = create_app_source(
-        app_structure,
-        project_path,
-        execution_context,
-        output_root.join("app"),
-        dev_server_root,
-        env,
-        &browserslist_query,
-        next_config,
-        server_addr,
-    );
+    // let pages_structure = find_pages_structure(project_path, dev_server_root,
+    // next_config); let page_source = create_page_source(
+    //     pages_structure,
+    //     project_path,
+    //     execution_context,
+    //     output_root.join("pages"),
+    //     dev_server_root,
+    //     env,
+    //     &browserslist_query,
+    //     next_config,
+    //     server_addr,
+    // );
+    // let app_structure = find_app_structure(project_path, dev_server_root,
+    // next_config); let app_source  = create_app_source(
+    //     app_structure,
+    //     project_path,
+    //     execution_context,
+    //     output_root.join("app"),
+    //     dev_server_root,
+    //     env,
+    //     &browserslist_query,
+    //     next_config,
+    //     server_addr,
+    // );
     let viz = turbo_tasks_viz::TurboTasksSource {
         turbo_tasks: turbo_tasks.into(),
     }
     .cell()
     .into();
-    let static_source =
-        StaticAssetsContentSourceVc::new(String::new(), project_path.join("public")).into();
-    let manifest_source = DevManifestContentSource {
-        page_roots: vec![app_source, page_source],
-        next_config,
-    }
-    .cell()
-    .into();
+    // let static_source : ContentSourceVc =
+    //     StaticAssetsContentSourceVc::new(String::new(),
+    // project_path.join("public")).into(); let manifest_source: ContentSourceVc
+    // = DevManifestContentSource {     page_roots: vec![app_source,
+    // page_source],     next_config,
+    // }
+    // .cell()
+    // .into();
     let main_source = CombinedContentSourceVc::new(vec![
-        manifest_source,
-        static_source,
-        app_source,
-        page_source,
+        // manifest_source,  仅仅是为了显示 几个 json api 数据
+        // static_source,
+        // app_source,
+        // page_source,
         web_source,
     ]);
     let introspect = IntrospectionSource {
@@ -353,20 +353,25 @@ async fn source(
     .into();
     let main_source = main_source.into();
     let source_maps = SourceMapContentSourceVc::new(main_source).into();
-    let source_map_trace = NextSourceMapTraceContentSourceVc::new(main_source).into();
-    let img_source = NextImageContentSourceVc::new(
-        CombinedContentSourceVc::new(vec![static_source, page_source]).into(),
-    )
-    .into();
-    let router_source = NextRouterContentSourceVc::new(
-        main_source,
-        execution_context,
-        next_config,
-        server_addr,
-        app_structure,
-        pages_structure,
-    )
-    .into();
+
+    // let source_map_trace =
+    // NextSourceMapTraceContentSourceVc::new(main_source).into();
+    // let img_source = NextImageContentSourceVc::new(
+    //     CombinedContentSourceVc::new(vec![static_source, page_source]).into(),
+    // )
+    // .into();
+    // let router_source = NextRouterContentSourceVc::new(
+    //     main_source,
+    //     execution_context,
+    //     next_config,
+    //     server_addr,
+    //     app_structure,
+    //     pages_structure,
+    // )
+    // .into();
+
+    let router_source = main_source;
+
     let source = RouterContentSource {
         routes: vec![
             ("__turbopack__/".to_string(), introspect),
@@ -376,7 +381,7 @@ async fn source(
                 source_map_trace,
             ),
             // TODO: Load path from next.config.js
-            ("_next/image".to_string(), img_source),
+            // ("_next/image".to_string(), img_source),
             ("__turbopack_sourcemap__/".to_string(), source_maps),
         ],
         fallback: router_source,
